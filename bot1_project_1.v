@@ -142,7 +142,7 @@ module RojoBot1
 	always @(posedge clk) begin
 		if (reset_in) begin
 			
-			right_pos <= 8'd0;
+			left_pos <= 8'd0;
 		end
 		else if (tick10hz) begin
 			
