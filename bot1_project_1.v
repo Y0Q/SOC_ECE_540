@@ -141,8 +141,31 @@ module RojoBot1
     // inc/dec wheel position counters    
 	always @(posedge clk) begin
 		if (reset_in) begin
-			left_pos <= 8'd0;
+			
 			right_pos <= 8'd0;
+		end
+		else if (tick10hz) begin
+			
+		
+			case ({(left_fwd & right_rev),(left_rev & right_fwd)})
+					2'b10: left_pos  <= left_pos + 1'b1;
+					2'b01: left_pos  <= left_pos - 1'b1;
+				
+				default: left_pos <= left_pos;
+			endcase
+		end
+		else begin
+			
+			left_pos <= left_pos;
+		end
+	end  // inc/dec wheel position counters
+        
+	 
+    // inc/dec wheel position counters    
+	always @(posedge clk) begin
+		if (reset_in) begin
+			left_pos <= 8'd0;
+			
 		end
 		else if (tick5hz) begin
 			case ({left_fwd, left_rev})
@@ -151,17 +174,12 @@ module RojoBot1
 				
 				default: left_pos <= left_pos;
 			endcase
-			case ({right_fwd, right_rev})
-				2'b10: right_pos <= right_pos + 1'b1;
-				2'b01: right_pos <= right_pos - 1'b1;
-				
-				default: right_pos <= right_pos;
-			endcase
+			
 		end
 		else begin
 			left_pos <= left_pos;
-			right_pos <= right_pos;
+			
 		end
-	end  // inc/dec wheel position counters
-        
+	end  // inc/dec wheel position counters	
+		
 endmodule

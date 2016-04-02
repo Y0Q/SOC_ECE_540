@@ -75,16 +75,16 @@ module Nexys4fpga (
 	wire 	[63:0]		digits_out;				// ASCII digits (Only for Simulation)
 
 	// set up the display and LEDs
-	assign	dig7 = {5'b11111};					// blank
-	assign	dig6 = {5'b11111};
-	assign	dig5 = {5'b11111};
-	assign	dig4 = {5'b11111};
+	assign	dig7 = {5'b00000};					// blank
+	assign	dig6 = {5'b00010};
+	assign	dig5 = {5'b00100};
+	assign	dig4 = {5'b01001};
 	
 	assign	dig3 = {1'b0,left_pos[7:4]};
 	assign	dig2 = {1'b0,left_pos[3:0]};
-	assign 	dig1 = {1'b0,right_pos[7:4]};
-	assign	dig0 = {1'b0,right_pos[3:0]};
-	assign	decpts = 8'b00000100;			// d2 is on
+	assign 	dig1 = {1'b0,left_pos[7:4]};
+	assign	dig0 = {1'b0,left_pos[3:0]};
+	assign	decpts = 8'b11100100;			// d2 is on
 	assign	led = db_sw;					// leds show the debounced switches
 
 /******************************************************************/
