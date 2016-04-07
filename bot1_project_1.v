@@ -47,7 +47,8 @@ module RojoBot1
 	input				right_fwd,
 	input				right_rev,
 	
-    output reg	[7:0]	left_pos,
+    output reg	[11:0]	compass_val, //12- bit value for 0-360 degree
+	output reg	[3:0]	motion_val,
 	output reg	[7:0]	right_pos
 );
 
@@ -68,6 +69,13 @@ module RojoBot1
 	reg								tick5hz;	
 	reg								tick10hz;		
     
+	reg incr,decr;
+	wire inc,dec;
+	
+	
+	
+	//   assign compass_val = compass_val;
+	
 	
 	// generate update clock enable
 	always @(posedge clk) begin
@@ -135,51 +143,112 @@ module RojoBot1
 		
 	end // update clock enable
 	
-	
-	
+	assign inc = incr;
+	assign dec =decr;
     
     // inc/dec wheel position counters    
 	always @(posedge clk) begin
 		if (reset_in) begin
-			
-			right_pos <= 8'd0;
+		
+			incr <= 1'b0;
+			decr <= 1'b0;
+			compass_val <= 1'b0;
+			motion_val <= 5'd16;
+		//	val <= 12'd0;
 		end
-		else if (tick10hz) begin
+				
+		
+		//	else  	if	(compass_val == 12'd360) begin
+	//					 compass_val <= 12'd0;
+		//			end	
+			
+		//	else if (compass_val ~= 12'd360) begin
+			
+		else	case ({left_fwd,right_rev,left_rev,right_fwd})
+						
+					4'b1100: 	if (tick10hz) begin
+								incr <= 1'b1;
+								
+								compass_val <= compass_val + 2'b11;
+								
+								motion_val <= 5'd16;
+								motion_val <= motion_val + 5'd01;
+								end
+	
+								
+					4'b0011:	if (tick10hz) begin
+								decr <= 1'b1;
+								
+								end	
+								
+					4'b1000: if (tick5hz) begin
+								compass_val  <= compass_val + 1'b1;
+							 end
+							 
+					4'b0100: if (tick5hz) begin
+								compass_val  <= compass_val + 1'b1;
+							 end		 
+						
+					
+							
+				default: compass_val <= compass_val;
+			endcase
+			end
+			
+
+			
 			
 		
-			case ({(left_fwd & right_rev),(left_rev & right_fwd)})
-					2'b10: left_pos  <= left_pos + 1'b1;
-					2'b01: left_pos  <= left_pos - 1'b1;
-				
-				default: left_pos <= left_pos;
-			endcase
-		end
-		else begin
-			
-			left_pos <= left_pos;
-		end
-	end  // inc/dec wheel position counters
+	 // inc/dec wheel position counters
         
-	 
-    // inc/dec wheel position counters    
-	always @(posedge clk) begin
-		if (reset_in) begin
-			left_pos <= 8'd0;
-			
+	 /*
+	
+// BCD counter (count from 0-9)
+	always @(clk) begin
+	if (reset_in) begin
+		
+			compass_val <= 1'b0;
+		
 		end
-		else if (tick5hz) begin
-			case ({left_fwd, left_rev})
-				2'b10: left_pos  <= left_pos + 1'b1;
-				2'b01: left_pos  <= left_pos - 1'b1;
+									
+				else if (inc) begin
+					
+			
 				
-				default: left_pos <= left_pos;
-			endcase
-			
-		end
-		else begin
-			left_pos <= left_pos;
-			
-		end
-	end  // inc/dec wheel position counters	
+									if 	(compass_val[3:0] == 12'b1001) begin
+										 compass_val[3:0]  <= 4'b0;
+									if 	(compass_val[7:4] == 12'b1001) begin
+										 compass_val[7:4]  <= 4'b0;
+									if 	(compass_val[11:8] == 12'b1001)
+										 compass_val[11:8]  <= 4'b0;
+									else 
+										
+										compass_val[11:8]  <= compass_val[11:8] + 1'b1;
+									end	
+									
+									else begin
+										compass_val[7:4]  <= compass_val[7:4] + 1'b1;
+									end	
+									end
+									else begin
+										
+										compass_val[3:0]  <= compass_val[3:0] + 1'b1;
+								end
+												
+								end				
+									
+									
+		else	if (dec) begin 
+				if	(compass_val == 12'd0) begin
+					 compass_val <= 12'd360;
+				end	
+				else begin
+				compass_val  <= compass_val - 1'b1;
+				end
+				end
+				end
+						
+// BCD counter (count from 0-9)
+*/
 		
 endmodule
