@@ -71,20 +71,22 @@ module Nexys4fpga (
 /******************************************************************/
 /* CHANGE THIS SECTION FOR YOUR LAB 1                             */
 /******************************************************************/		
-	wire	[7:0]		left_pos, right_pos;
-	wire 	[63:0]		digits_out;				// ASCII digits (Only for Simulation)
+	wire	[11:0]		compass_val;
+	wire 	[4:0]		motion_val;
+	wire	[7:0]	   right_pos;
+	wire 	[63:0]	 	digits_out;				// ASCII digits (Only for Simulation)
 
 	// set up the display and LEDs
 	assign	dig7 = {5'b00000};					// blank
-	assign	dig6 = {5'b00010};
-	assign	dig5 = {5'b00100};
-	assign	dig4 = {5'b01001};
+	assign	dig6 = {5'b00000};
+	assign	dig5 = {5'b00000};
+	assign	dig4 = {5'b00000};
 	
-	assign	dig3 = {1'b0,left_pos[7:4]};
-	assign	dig2 = {1'b0,left_pos[3:0]};
-	assign 	dig1 = {1'b0,left_pos[7:4]};
-	assign	dig0 = {1'b0,left_pos[3:0]};
-	assign	decpts = 8'b11100100;			// d2 is on
+	assign	dig3 = {1'b0,motion_val[4:0]};
+	assign	dig2 = {1'b0,compass_val[10:8]};
+	assign 	dig1 = {1'b0,compass_val[7:4]};
+	assign	dig0 = {1'b0,compass_val[3:0]};
+	assign	decpts = 8'b00000000;			// d2 is on
 	assign	led = db_sw;					// leds show the debounced switches
 
 /******************************************************************/
@@ -159,7 +161,8 @@ module Nexys4fpga (
 		.left_rev(db_btns[3]), 
 		.right_fwd(db_btns[2]),
 		.right_rev(db_btns[1]),
-		.left_pos(left_pos),  // left wheel position counter output
+		.motion_val(motion_val),
+		.compass_val(compass_val),  // left wheel position counter output
 		.right_pos(right_pos) // right wheel position counter output
 	);
 			

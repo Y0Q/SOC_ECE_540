@@ -71,10 +71,24 @@ module tb;
     initial begin
     
     	#10 reset = 1'b1;	// reset the system
-    	#500 reset = 1'b0;
+    	#50 reset = 1'b0;
 
-		#10 reset = 1'b1;
-		#500 reset = 1'b0;
+		 #IVL btn = 4'b0010; // push right fwd    - increment right wheel count (turn left 1x)
+        #IVL btn = 4'b1010; // push left fwd     - increment right and left wheel count (move forward)
+        #IVL btn = 4'b1000; // release right fwd - increment left wheel count (turn right 1x)
+        #IVL btn = 4'b1001; // push right rev    - increment left wheel count, decrement right wheel count (turn right 2x)
+        #IVL btn = 4'b0001; // release left fwd  - decrement right wheel count (turn right 1x )
+        #IVL btn = 4'b0101; // push left rev     - decrement left and right wheel count (move in reverse) 
+        #IVL btn = 4'b0100; // release right rev - decrement left wheel count (turn left 1x)
+        #IVL btn = 4'b0110; // push right fwd    - decrement left wheel count, increment right wheel count (turn left 2x)
+	
+		 #IVL btn = 4'b0101; // push left rev     - decrement left and right wheel count (move in reverse) 
+        #IVL btn = 4'b0100; // release right rev - decrement left wheel count (turn left 1x)
+        #IVL btn = 4'b0110; // push right fwd    - decrement left wheel count, increment right wheel count (turn left 2x)
+        #IVL btn = 4'b0000; // release all       - stopped
+        #IVL btn = 4'b0011; // right fwd and rev cancel - stopped         
+        #IVL btn = 4'b1100; // left fwd and rev cancel  - stopped  
+		
 		
 		
                             // no buttons pushed - stopped
