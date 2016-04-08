@@ -20,6 +20,8 @@
 // incremented at 5Hz by dividing the system clock down to 5Hz.
 // The "SIMULATE" parameter should be set to 1'b1 if the design is being
 // simulated to keep the simulation time reasonable.
+
+// Source : http://www.eng.utah.edu/~nmcdonal/Tutorials/BCDTutorial/BCDConversion.html
 // 
 ///////////////////////////////////////////////////////////////////////////
 `timescale  1 ns / 1 ns
@@ -47,12 +49,18 @@ module RojoBot1
 	input				right_fwd,
 	input				right_rev,
 	
-    output reg	[11:0]	compass_val, //12- bit value for 0-360 degree
-	output reg	[3:0]	motion_val,
+    output wire	[9:0]	compass_val, //12- bit value for 0-360 degree
+	output reg	[4:0]	motion_val,
 	output reg	[7:0]	right_pos
 );
 
 	// internal variables
+	
+	 reg [8:0]  binary;
+	 reg [3:0] hundreds;
+	 reg [3:0] tens;
+	 reg [3:0] ones;
+	integer i;
 	
 	// reset - asserted high
 	wire reset_in = RESET_POLARITY_LOW ? ~reset : reset;
@@ -143,61 +151,101 @@ module RojoBot1
 		
 	end // update clock enable
 	
-	assign inc = incr;
-	assign dec =decr;
-    
     // inc/dec wheel position counters    
 	always @(posedge clk) begin
 		if (reset_in) begin
 		
 			incr <= 1'b0;
 			decr <= 1'b0;
-			compass_val <= 1'b0;
-			motion_val <= 5'd16;
+			binary <= 1'b0;
+			motion_val <= 5'd00;
 		//	val <= 12'd0;
 		end
 				
-		
-		//	else  	if	(compass_val == 12'd360) begin
-	//					 compass_val <= 12'd0;
-		//			end	
+	/*
+			else  	if	(binary == 10'd360) begin
+						 binary <= 10'd0;
+					end	
+					
+			else    if  (binary == 10'd0 )  begin
+						 binary <= 10'360;
+					end
+	*/
+	//		else if (binary ~= 10'd360) begin
 			
-		//	else if (compass_val ~= 12'd360) begin
-			
-		else	case ({left_fwd,right_rev,left_rev,right_fwd})
+				else case ({left_fwd,right_rev,left_rev,right_fwd})
 						
 					4'b1100: 	if (tick10hz) begin
-								incr <= 1'b1;
 								
-								compass_val <= compass_val + 2'b11;
 								
-								motion_val <= 5'd16;
-								motion_val <= motion_val + 5'd01;
+								binary <= binary + 1'b1;
+								
+								if ( (motion_val < 5'd16) | (motion_val > 5'd20) ) begin
+									motion_val <= 5'd16;
 								end
-	
+								else begin
+								 
+								 motion_val <= motion_val + 1'd1;
+								end
+								end
 								
 					4'b0011:	if (tick10hz) begin
-								decr <= 1'b1;
 								
-								end	
+								binary  <= binary - 1'b1;
+								
+									if ( (motion_val < 5'd17) | (motion_val > 5'd20) ) begin
+									motion_val <= 5'd20;
+								end
+								else begin
+								 
+								 motion_val <= motion_val - 1'd1;
+								end
+								end
 								
 					4'b1000: if (tick5hz) begin
-								compass_val  <= compass_val + 1'b1;
+								binary  <= binary - 1'b1;
 							 end
 							 
 					4'b0100: if (tick5hz) begin
-								compass_val  <= compass_val + 1'b1;
+								binary  <= binary - 1'b1;
 							 end		 
 						
 					
 							
-				default: compass_val <= compass_val;
+				default: binary <= binary;
 			endcase
 			end
 			
-
 			
+assign compass_val = {hundreds,tens,ones};
 			
+		// Binary to BCD conversion
+	
+	always @(binary) begin
+	
+	hundreds = 4'd0;
+	tens  = 4'd0;
+	ones = 4'd0;
+	
+	for (i=9 ; i>=0; i=i-1)
+	begin
+	
+	if (hundreds >= 5)
+		hundreds = hundreds+3;
+	if (tens >= 5)	
+		tens =tens +3;
+	if (ones >= 5)	
+		ones = ones+3;
+		
+		hundreds= hundreds << 1;
+		hundreds [0] =tens [3];
+		tens =tens << 1;
+		tens[0] = ones[3];
+		ones =ones << 1;
+		ones [0] = binary [i];
+		end
+		end
+	
 		
 	 // inc/dec wheel position counters
         
