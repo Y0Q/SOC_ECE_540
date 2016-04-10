@@ -49,14 +49,14 @@ module RojoBot1
 	input				right_fwd,
 	input				right_rev,
 	
-    output wire	[9:0]	compass_val, //12- bit value for 0-360 degree
+    output wire	[10:0]	compass_val, //12- bit value for 0-360 degree
 	output reg	[4:0]	motion_val,
 	output reg	[7:0]	right_pos
 );
 
 	// internal variables
 	
-	 reg [8:0]  binary;
+	 reg [9:0] binary;
 	 reg [3:0] hundreds;
 	 reg [3:0] tens;
 	 reg [3:0] ones;
@@ -77,10 +77,7 @@ module RojoBot1
 	reg								tick5hz;	
 	reg								tick10hz;		
     
-	reg incr,decr;
-	wire inc,dec;
-	
-	
+
 	
 	//   assign compass_val = compass_val;
 	
@@ -155,26 +152,57 @@ module RojoBot1
 	always @(posedge clk) begin
 		if (reset_in) begin
 		
-			incr <= 1'b0;
-			decr <= 1'b0;
-			binary <= 1'b0;
+		
+			binary <= 10'd0;
 			motion_val <= 5'd00;
-		//	val <= 12'd0;
+		
 		end
 				
-	/*
-			else  	if	(binary == 10'd360) begin
-						 binary <= 10'd0;
-					end	
-					
-			else    if  (binary == 10'd0 )  begin
-						 binary <= 10'360;
+	
+			else  	if	((binary == 10'd361)  ) begin
+						  binary <= 10'd0;
 					end
-	*/
-	//		else if (binary ~= 10'd360) begin
-			
-				else case ({left_fwd,right_rev,left_rev,right_fwd})
+		
+				else if((binary != 10'd361) )	begin
+
+					case ({left_fwd,right_rev,left_rev,right_fwd})
 						
+					// STOP 
+								
+					4'b0000:	if (tick1hz) begin
+								motion_val <= 5'd22;  
+								end
+					//FORWARD
+					
+					4'b1001: 	if (tick1hz) begin
+								
+								
+								if (motion_val == 5'd16) begin
+								
+								motion_val <=5'd30; // blank...go to default case
+								end
+								else begin
+									
+								motion_val <= 5'd16;
+								
+								end
+							 end
+							 
+					//REVERSE		 
+					4'b0110: 	if (tick1hz) begin
+							
+								if (motion_val == 5'd19) begin
+								
+								motion_val <=5'd30; // blank...go to default case
+								end
+								else begin
+									
+								motion_val <= 5'd19;
+								
+								end
+							 end		 
+					
+					 // RIGHT 2X
 					4'b1100: 	if (tick10hz) begin
 								
 								
@@ -186,14 +214,22 @@ module RojoBot1
 								else begin
 								 
 								 motion_val <= motion_val + 1'd1;
+								 
 								end
 								end
-								
+					
+					// LEFT 2X					
 					4'b0011:	if (tick10hz) begin
 								
+								if (binary == 10'd0) begin
+								binary <= 10'd359;
+								end
+											
+								else begin
 								binary  <= binary - 1'b1;
 								
-									if ( (motion_val < 5'd17) | (motion_val > 5'd20) ) begin
+								
+								if ( (motion_val < 5'd17) | (motion_val > 5'd20) ) begin
 									motion_val <= 5'd20;
 								end
 								else begin
@@ -201,21 +237,55 @@ module RojoBot1
 								 motion_val <= motion_val - 1'd1;
 								end
 								end
+								end
 								
-					4'b1000: if (tick5hz) begin
-								binary  <= binary - 1'b1;
-							 end
+					// LEFT 1X
 							 
-					4'b0100: if (tick5hz) begin
-								binary  <= binary - 1'b1;
-							 end		 
-						
+					4'b0001: if (tick5hz) begin
 					
-							
-				default: binary <= binary;
+								if (binary == 10'd0) begin
+								binary <= 10'd359;
+								end
+											
+								else begin
+								
+								binary  <= binary - 1'b1;
+								
+								if ( (motion_val < 5'd17) | (motion_val > 5'd20) ) begin
+									motion_val <= 5'd20;
+								end
+								else begin
+								 
+								 motion_val <= motion_val - 1'd1;
+								end
+								end
+								end
+							 
+					// RIGHT 1X
+					
+					4'b1000: if (tick5hz) begin
+								binary  <= binary + 1'b1;
+								
+								if ( (motion_val < 5'd16) | (motion_val > 5'd20) ) begin
+									motion_val <= 5'd16;
+								end
+								else begin
+								 
+								 motion_val <= motion_val + 1'd1;
+								 
+								end
+							 end		 	
+
+
+			default: binary <= binary;
 			endcase
 			end
+			end
 			
+		
+		
+	 // inc/dec wheel position counters
+ 	
 			
 assign compass_val = {hundreds,tens,ones};
 			
@@ -227,7 +297,8 @@ assign compass_val = {hundreds,tens,ones};
 	tens  = 4'd0;
 	ones = 4'd0;
 	
-	for (i=9 ; i>=0; i=i-1)
+	
+	for (i=8 ; i>=0; i=i-1)
 	begin
 	
 	if (hundreds >= 5)
@@ -245,58 +316,6 @@ assign compass_val = {hundreds,tens,ones};
 		ones [0] = binary [i];
 		end
 		end
-	
-		
-	 // inc/dec wheel position counters
-        
-	 /*
-	
-// BCD counter (count from 0-9)
-	always @(clk) begin
-	if (reset_in) begin
-		
-			compass_val <= 1'b0;
-		
-		end
-									
-				else if (inc) begin
-					
-			
-				
-									if 	(compass_val[3:0] == 12'b1001) begin
-										 compass_val[3:0]  <= 4'b0;
-									if 	(compass_val[7:4] == 12'b1001) begin
-										 compass_val[7:4]  <= 4'b0;
-									if 	(compass_val[11:8] == 12'b1001)
-										 compass_val[11:8]  <= 4'b0;
-									else 
-										
-										compass_val[11:8]  <= compass_val[11:8] + 1'b1;
-									end	
-									
-									else begin
-										compass_val[7:4]  <= compass_val[7:4] + 1'b1;
-									end	
-									end
-									else begin
-										
-										compass_val[3:0]  <= compass_val[3:0] + 1'b1;
-								end
-												
-								end				
-									
-									
-		else	if (dec) begin 
-				if	(compass_val == 12'd0) begin
-					 compass_val <= 12'd360;
-				end	
-				else begin
-				compass_val  <= compass_val - 1'b1;
-				end
-				end
-				end
-						
-// BCD counter (count from 0-9)
-*/
+
 		
 endmodule
