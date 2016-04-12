@@ -159,11 +159,11 @@ module RojoBot1
 		end
 				
 	
-			else  	if	((binary == 10'd361)  ) begin
+			else  	if	((binary == 10'd360)  ) begin
 						  binary <= 10'd0;
 					end
 		
-				else if((binary != 10'd361) )	begin
+				else if((binary != 10'd360) )	begin
 
 					case ({left_fwd,right_rev,left_rev,right_fwd})
 						
@@ -239,7 +239,7 @@ module RojoBot1
 								end
 								end
 								
-					// LEFT 1X
+					// LEFT 1X (Right_fwd)
 							 
 					4'b0001: if (tick5hz) begin
 					
@@ -260,8 +260,30 @@ module RojoBot1
 								end
 								end
 								end
+					
+					// LEFT 1X (Left_rev)
 							 
-					// RIGHT 1X
+					4'b0010: if (tick5hz) begin
+					
+								if (binary == 10'd0) begin
+								binary <= 10'd359;
+								end
+											
+								else begin
+								
+								binary  <= binary - 1'b1;
+								
+								if ( (motion_val < 5'd17) | (motion_val > 5'd20) ) begin
+									motion_val <= 5'd20;
+								end
+								else begin
+								 
+								 motion_val <= motion_val - 1'd1;
+								end
+								end
+								end
+					
+					// RIGHT 1X (left_fwd)
 					
 					4'b1000: if (tick5hz) begin
 								binary  <= binary + 1'b1;
@@ -274,8 +296,23 @@ module RojoBot1
 								 motion_val <= motion_val + 1'd1;
 								 
 								end
-							 end		 	
+							 end	
 
+							 
+					// RIGHT 1X (right_rev)
+					
+					4'b0100: if (tick5hz) begin
+								binary  <= binary + 1'b1;
+								
+								if ( (motion_val < 5'd16) | (motion_val > 5'd20) ) begin
+									motion_val <= 5'd16;
+								end
+								else begin
+								 
+								 motion_val <= motion_val + 1'd1;
+								 
+								end
+							 end	
 
 			default: binary <= binary;
 			endcase
